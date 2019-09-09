@@ -6,6 +6,8 @@ vendor
 **/*~
 **/*.bak
 
+!*/.gitkeep
+!*/*/.gitkeep
 
 # OS generated files #
 ######################
