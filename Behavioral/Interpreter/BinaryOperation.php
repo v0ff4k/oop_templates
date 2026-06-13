@@ -57,7 +57,9 @@ class Value implements Expression
      * Value constructor.
      * @param float $value
      */
-    public function __construct(private float $value) {}
+    public function __construct(private float $value)
+    {
+    }
 
     /**
      * @param Context $context
@@ -81,7 +83,9 @@ class Variable implements Expression
      * Variable constructor.
      * @param string $name
      */
-    public function __construct(private string $name) {}
+    public function __construct(private string $name)
+    {
+    }
 
     /**
      * @param Context $context
@@ -109,7 +113,9 @@ abstract class BinaryOperation implements Expression
     public function __construct(
         protected Expression $left,
         protected Expression $right
-    ) {}
+    )
+    {
+    }
 }
 
 /**
@@ -229,8 +235,8 @@ class ExpressionParser
 {
     /**
      * @param string $expression
-     * @todo right-left priority check!
      * @return Expression
+     * @todo right-left priority check!
      */
     public static function parse(string $expression): Expression
     {
@@ -239,7 +245,7 @@ class ExpressionParser
 
         foreach ($tokens as $token) {
             // 1. Убираем return из цикла. Помещаем объекты в стек.
-            $stack->push( match ($token) {
+            $stack->push(match ($token) {
                 '+' => new Add($stack->pop(), $stack->pop()),
                 '-' => new Subtract($stack->pop(), $stack->pop()),
                 '*' => new Multiply($stack->pop(), $stack->pop()),
