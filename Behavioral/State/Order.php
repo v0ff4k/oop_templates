@@ -20,9 +20,13 @@ namespace Behavioral\State;
 interface OrderState
 {
     public function next(OrderContext $context): void;
+
     public function prev(OrderContext $context): void;
+
     public function getStatus(): string;
+
     public function canNext(): bool;
+
     public function canPrev(): bool;
 }
 
@@ -45,19 +49,19 @@ class OrderContext
     }
 
     /**
-     * @param \Behavioral\State\OrderState $state
-     */
-    public function setState(OrderState $state): void
-    {
-        $this->state = $state;
-    }
-
-    /**
      * @return OrderState
      */
     public function getState(): OrderState
     {
         return $this->state;
+    }
+
+    /**
+     * @param OrderState $state
+     */
+    public function setState(OrderState $state): void
+    {
+        $this->state = $state;
     }
 
     /**
@@ -120,9 +124,26 @@ class OrderContext
  *
  * example located in Behavioral\State\State
  */
+
 namespace Behavioral\State\State;
 
 use Behavioral\State\OrderContext;
+use RuntimeException;
+
+/**
+ * Interface PaymentState
+ * Пример 3: Состояние процесса оплаты
+ *
+ * @package Behavioral\State\State
+ */
+interface PaymentState
+{
+    public function process(PaymentContext $context): void;
+
+    public function cancel(PaymentContext $context): void;
+
+    public function getStatus(): string;
+}
 
 /**
  * Class Draft
@@ -137,7 +158,7 @@ class Draft implements OrderState
         if ($context->getTotal() > 0) {
             $context->setState(new Processing());
         } else {
-            throw new \RuntimeException('Cannot process empty order');
+            throw new RuntimeException('Cannot process empty order');
         }
     }
 
@@ -387,22 +408,22 @@ class DocumentWorkflow
 
     /**
      * @param string $newStatus
+     */
+    public function transitTo(string $newStatus): void
+    {
+        if (!$this->canTransitTo($newStatus)) {
+            throw new RuntimeException("Cannot transition from {$this->status} to {$newStatus}");
+        }
+        $this->status = $newStatus;
+    }
+
+    /**
+     * @param string $newStatus
      * @return bool
      */
     public function canTransitTo(string $newStatus): bool
     {
         return in_array($newStatus, $this->allowedTransitions[$this->status] ?? []);
-    }
-
-    /**
-     * @param string $newStatus
-     */
-    public function transitTo(string $newStatus): void
-    {
-        if (!$this->canTransitTo($newStatus)) {
-            throw new \RuntimeException("Cannot transition from {$this->status} to {$newStatus}");
-        }
-        $this->status = $newStatus;
     }
 
     /**
@@ -412,19 +433,6 @@ class DocumentWorkflow
     {
         return $this->status;
     }
-}
-
-/**
- * Interface PaymentState
- * Пример 3: Состояние процесса оплаты
- *
- * @package Behavioral\State\State
- */
-interface PaymentState
-{
-    public function process(PaymentContext $context): void;
-    public function cancel(PaymentContext $context): void;
-    public function getStatus(): string;
 }
 
 /**
@@ -494,16 +502,17 @@ class PaymentContext
 }
 
 
-
 /**
  * Payment States
  *
  * example located in Behavioral\State\Payment\States
  */
+
 namespace Behavioral\State\Payment\States;
 
 use Behavioral\State\PaymentContext;
 use Behavioral\State\PaymentState;
+use RuntimeException;
 
 /**
  * Class Pending
@@ -755,7 +764,7 @@ echo "After next: {$order->getStatus()}\n"; // delivered
 // Попытка перейти дальше (нельзя)
 try {
     $order->next();
-} catch (\RuntimeException $e) {
+} catch (RuntimeException $e) {
     echo "Error: " . $e->getMessage() . "\n";
 }
 
@@ -772,7 +781,7 @@ echo "Document status: {$doc->getStatus()}\n"; // published
 // Попытка вернуться назад (нельзя)
 try {
     $doc->transitTo('draft');
-} catch (\RuntimeException $e) {
+} catch (RuntimeException $e) {
     echo "Error: " . $e->getMessage() . "\n";
 }
 
