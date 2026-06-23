@@ -8,8 +8,8 @@
 
 abstract class Lesson
 {
-    private  $duration;
-    private  $costStrategy;
+    private $duration;
+    private $costStrategy;
 
     public function __construct($duration, CostStrategy $strategy)
     {
@@ -18,18 +18,18 @@ abstract class Lesson
     }
 
     //delegated call
-    function cost()
+    public function cost()
     {
         return $this->costStrategy->cost($this);
     }
 
     //delegated call
-    function chargeType()
+    public function chargeType()
     {
         return $this->costStrategy->chargeType();
     }
 
-    function getDuration()
+    public function getDuration()
     {
         return $this->duration;
     }
@@ -48,8 +48,8 @@ class Seminar extends Lesson
 //main strategy that will be extend
 abstract class CostStrategy
 {
-    abstract function cost(Lesson $lesson);
-    abstract function chargeType();
+    abstract public function cost(Lesson $lesson);
+    abstract public function chargeType();
 }
 
 class TimedCostStrategy extends CostStrategy
@@ -61,7 +61,7 @@ class TimedCostStrategy extends CostStrategy
 
     public function chargeType()
     {
-        return "Pay per hour";
+        return 'Pay per hour';
     }
 }
 
@@ -74,7 +74,7 @@ class FixedCostStrategy extends CostStrategy
 
     public function chargeType()
     {
-        return "Fixed price";
+        return 'Fixed price';
     }
 }
 
@@ -88,6 +88,6 @@ $lessons[] = new Lecture(2, new TimedCostStrategy());
 /** @var \Lesson $lesson */
 foreach ($lessons as $lesson) {
 
-    print "pay per lesson: " . $lesson->cost() . ". ";
-    print "pay type: " . $lesson->chargeType() . " \n ";
+    print 'pay per lesson: ' . $lesson->cost() . '. ';
+    print 'pay type: ' . $lesson->chargeType() . " \n ";
 }
