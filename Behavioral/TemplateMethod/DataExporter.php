@@ -10,11 +10,15 @@ declare(strict_types=1);
 
 namespace Behavioral\TemplateMethod;
 
+use RuntimeException;
+
 /**
  * Пример 1: Abstract Class - определяет шаблонный метод
  *
  * @package Behavioral\TemplateMethod
  */
+// Использование атрибутов для определения шагов
+#[TemplateMethod]
 abstract class DataExporter
 {
     /**
@@ -23,18 +27,19 @@ abstract class DataExporter
      */
     final public function export(array $data): string
     {
-        // Шаг 1: Подготовка данных (фиксированный)
-        $prepared = $this->prepareData($data);
-
-        // Шаг 2: Форматирование (переопределяемый)
-        $formatted = $this->formatData($prepared);
-
-        // Шаг 3: Сохранение (переопределяемый)
-        $result = $this->saveData($formatted);
-
-        // Шаг 4: Постобработка (фиксированный)
-        return $this->postProcess($result);
+        $this->preProcess($data);
+        $this->format();
+        $this->postProcess();
     }
+
+    #[Step(order: 1, description: 'Подготовка данных (фиксированный)')]
+    protected function preProcess(array $data): void {}
+
+    #[Step(order: 2, description: 'Форматирование (переопределяемый) + Сохранение (переопределяемый)')]
+    abstract protected function format(): void;
+
+    #[Step(order: 3, description: 'Постобработка (фиксированный)')]
+    protected function postProcess(): void {}
 
     /**
      * Фиксированные шаги - не могут быть переопределены
@@ -54,6 +59,7 @@ abstract class DataExporter
     {
         // Добавление метаданных, логирование
         $timestamp = date('Y-m-d H:i:s');
+
         return "Exported at {$timestamp}\n{$result}";
     }
 
@@ -62,6 +68,44 @@ abstract class DataExporter
      */
     abstract protected function formatData(array $data): string;
     abstract protected function saveData(string $formatted): string;
+}
+
+// "Pattern matching" - для определения шагов, в клиентском коде.
+final public function export(array $data): string
+{
+    return match (true) {
+        $this instanceof CsvExporter => $this->exportCsv($data),
+        $this instanceof JsonExporter => $this->exportJson($data),
+        default => throw new RuntimeException('Unsupported exporter'),
+    };
+}
+
+/**
+ * Использование enum для типов экспорта
+ *
+ * @package Behavioral\TemplateMethod
+ */
+enum ExportFormat: string
+{
+    case CSV = 'csv';
+    case JSON = 'json';
+    case XML = 'xml';
+}
+
+/**
+ * Class ExporterFactory - фактори для клиентского кода а не if-else/перебор
+ * @package Behavioral\TemplateMethod
+ */
+class ExporterFactory
+{
+    public function create(ExportFormat $format): DataExporter
+    {
+        return match ($format) {
+            ExportFormat::CSV => new CsvExporter(),
+            ExportFormat::JSON => new JsonExporter(),
+            ExportFormat::XML => new XmlExporter(),
+        };
+    }
 }
 
 /**
@@ -149,6 +193,7 @@ abstract class QueryBuilder
         $this->where();
         $this->groupBy();
         $this->orderBy();
+
         return $this->assemble();
     }
 
