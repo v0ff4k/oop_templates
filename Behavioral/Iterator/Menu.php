@@ -29,8 +29,7 @@ class Menu implements IteratorAggregate
      */
     public function __construct(
         private array $items = []
-    )
-    {
+    ) {
     }
 
     /**
@@ -52,8 +51,7 @@ class Menu implements IteratorAggregate
             public function __construct(
                 private array $items,
                 private int   $position = 0
-            )
-            {
+            ) {
             }
 
             public function current(): mixed
@@ -95,8 +93,7 @@ class AdvancedMenu implements Iterator
     public function __construct(
         private array $items,
         private int   $position = 0
-    )
-    {
+    ) {
     }
 
     /**
