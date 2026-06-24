@@ -69,7 +69,7 @@ class BlogPost implements Subject
     {
         $this->observers[] = $observer;
 
-        echo "Observer attached: " . get_class($observer) . "\n";
+        echo 'Observer attached: ' . get_class($observer) . "\n";
     }
 
     /**
@@ -79,10 +79,10 @@ class BlogPost implements Subject
     {
         $this->observers = array_filter(
             $this->observers,
-            fn($obs) => $obs !== $observer
+            fn ($obs) => $obs !== $observer
         );
 
-        echo "Observer detached: " . get_class($observer) . "\n";
+        echo 'Observer detached: ' . get_class($observer) . "\n";
     }
 
     public function publish(): void
@@ -210,7 +210,7 @@ class EventManager implements Subject
         if (isset($this->listeners[$event])) {
             $this->listeners[$event] = array_filter(
                 $this->listeners[$event],
-                fn($obs) => $obs !== $observer
+                fn ($obs) => $obs !== $observer
             );
         }
     }
@@ -232,8 +232,7 @@ class EventManager implements Subject
                     public function __construct(
                         private string $event,
                         private mixed  $data
-                    )
-                    {
+                    ) {
                     }
 
                     public function attach(Observer $observer): void
@@ -391,4 +390,3 @@ $events->attach($tracker, 'user.purchase');
 
 $events->notify('user.login', ['user_id' => 123]);
 $events->notify('user.purchase', ['amount' => 49.99]);
-
