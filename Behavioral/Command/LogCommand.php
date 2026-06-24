@@ -29,14 +29,13 @@ interface Command
  */
 class LogCommand implements Command
 {
-//    private string $message;
-//    private Logger $logger;
+    //    private string $message;
+    //    private Logger $logger;
 
     public function __construct(
         public readonly Logger $logger,
         public readonly string $message
-    )
-    {
+    ) {
         // property promotion уже используется в сигнатуре конструктора
     }
 
