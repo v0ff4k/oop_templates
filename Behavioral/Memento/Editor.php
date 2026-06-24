@@ -24,8 +24,7 @@ class EditorMemento
     public function __construct(
         private string  $state,
         private ?string $metadata = null
-    )
-    {
+    ) {
     }
 
     /**
@@ -62,8 +61,7 @@ class TextEditor
 
     public function __construct(
         private string $filename
-    )
-    {
+    ) {
     }
 
     /**
@@ -170,7 +168,8 @@ class EditorHistory
     public function getHistory(): array
     {
         return array_map(
-            fn($m, $i) => "{$i}: " . $m->getMetadata(), $this->mementos
+            fn ($m, $i) => "{$i}: " . $m->getMetadata(),
+            $this->mementos
         );
     }
 }
@@ -186,8 +185,7 @@ class ConfigMemento
     public function __construct(
         private array  $config,
         private string $version
-    )
-    {
+    ) {
     }
 
     /**
@@ -337,7 +335,7 @@ $config->updateSetting('cache_ttl', 3600);
 $memento = $config->saveState();
 $config->updateSetting('debug_mode', false);
 
-echo "Debug mode before restore: " . ($config->settings['debug_mode'] ? 'true' : 'false') . "\n";
+echo 'Debug mode before restore: ' . ($config->settings['debug_mode'] ? 'true' : 'false') . "\n";
 
 $config->restore($memento);
-echo "Debug mode after restore: " . ($config->settings['debug_mode'] ? 'true' : 'false') . "\n";
+echo 'Debug mode after restore: ' . ($config->settings['debug_mode'] ? 'true' : 'false') . "\n";
