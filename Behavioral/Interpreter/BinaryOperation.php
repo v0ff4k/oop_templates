@@ -113,8 +113,7 @@ abstract class BinaryOperation implements Expression
     public function __construct(
         protected Expression $left,
         protected Expression $right
-    )
-    {
+    ) {
     }
 }
 
