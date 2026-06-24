@@ -38,8 +38,8 @@ class ChatRoom implements Mediator
 
     public function __construct(
         private string $name
-    )
-    {}
+    ) {
+    }
 
     /**
      * @param User $user
@@ -106,8 +106,7 @@ abstract class User
     public function __construct(
         protected string   $name,
         protected Mediator $mediator
-    )
-    {
+    ) {
         $this->mediator->notify($this, 'join');
     }
 
@@ -186,8 +185,8 @@ class Button
     public function __construct(
         private string     $name,
         private UIMediator $mediator
-    )
-    {}
+    ) {
+    }
 
     public function click(): void
     {
@@ -206,8 +205,8 @@ class TextBox
     public function __construct(
         private string     $name,
         private UIMediator $mediator
-    )
-    {}
+    ) {
+    }
 
     /**
      * @return string|null
@@ -404,4 +403,3 @@ $uiMediator->registerTextBox($input);
 
 $input->setText('john_doe');
 $button->click();
-
