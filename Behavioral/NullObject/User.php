@@ -57,8 +57,7 @@ class User implements UserInterface
         private string $name,
         private string $email,
         private array  $permissions = []
-    )
-    {
+    ) {
     }
 
     public function getName(): string
@@ -88,8 +87,7 @@ class NullUser implements UserInterface
     public function __construct(
         private readonly string $name = 'Guest',
         private readonly string $email = 'guest@example.com'
-    )
-    {
+    ) {
     }
 
     public function getName(): string
@@ -354,4 +352,4 @@ echo "\n=== Cache Example ===\n";
 $cache = new RedisCache(new Redis()); // Или NullCache в тестах
 
 $cache->set('test_key', 'test_value');
-echo "Cache has test_key? " . ($cache->has('test_key') ? 'Yes' : 'No') . "\n";
+echo 'Cache has test_key? ' . ($cache->has('test_key') ? 'Yes' : 'No') . "\n";
