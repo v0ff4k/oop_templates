@@ -114,7 +114,7 @@ class OrderContext
      */
     public function getTotal(): float
     {
-        return array_reduce($this->items, fn($sum, $item) => $sum + $item['price'], 0);
+        return array_reduce($this->items, fn ($sum, $item) => $sum + $item['price'], 0);
     }
 }
 
@@ -765,7 +765,7 @@ echo "After next: {$order->getStatus()}\n"; // delivered
 try {
     $order->next();
 } catch (RuntimeException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n=== Document Workflow ===\n";
@@ -782,13 +782,13 @@ echo "Document status: {$doc->getStatus()}\n"; // published
 try {
     $doc->transitTo('draft');
 } catch (RuntimeException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n=== Payment State Machine ===\n";
 $payment = new PaymentContext(99.99);
 $payment->process();
-echo "Payment status: " . $payment->getState()->getStatus() . "\n"; // processing
+echo 'Payment status: ' . $payment->getState()->getStatus() . "\n"; // processing
 
 $payment->process();
-echo "Payment completed? " . ($payment->isCompleted() ? 'Yes' : 'No') . "\n";
+echo 'Payment completed? ' . ($payment->isCompleted() ? 'Yes' : 'No') . "\n";
