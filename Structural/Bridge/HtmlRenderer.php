@@ -10,7 +10,6 @@ declare(strict_types=1);
 
 namespace Structural\Bridge;
 
-
 /**
  * Implementor Interface - интерфейс реализации
  */
@@ -317,7 +316,10 @@ abstract class Shape
  */
 class Line extends Shape
 {
-    private float $x1, $y1, $x2, $y2;
+    private float $x1;
+    private float $y1;
+    private float $x2;
+    private float $y2;
 
     public function __construct(GraphicsRenderer $renderer, float $x1, float $y1, float $x2, float $y2)
     {
@@ -341,7 +343,9 @@ class Line extends Shape
 
 class Circle extends Shape
 {
-    private float $x, $y, $radius;
+    private float $x;
+    private float $y;
+    private float $radius;
 
     public function __construct(GraphicsRenderer $renderer, float $x, float $y, float $radius)
     {
