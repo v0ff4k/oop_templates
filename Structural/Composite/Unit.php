@@ -33,12 +33,12 @@ abstract class Leaf implements Component
 
     public function add(Component $component): void
     {
-        throw new UnitException(get_class($this) . " cannot add components");
+        throw new UnitException(get_class($this) . ' cannot add components');
     }
 
     public function remove(Component $component): void
     {
-        throw new UnitException(get_class($this) . " cannot remove components");
+        throw new UnitException(get_class($this) . ' cannot remove components');
     }
 
     public function getChildren(): array
@@ -58,13 +58,13 @@ abstract class Leaf implements Component
 
     public function __toString(): string
     {
-        return $this->name . " (Power: " . $this->power . ")";
+        return $this->name . ' (Power: ' . $this->power . ')';
     }
 }
 
-class UnitException extends  \Exception
+class UnitException extends \Exception
 {
-    public function __construct($message = "", $code = 0, ?\Throwable $previous = null)
+    public function __construct($message = '', $code = 0, ?\Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }
@@ -110,9 +110,9 @@ abstract class Composite implements Component
 
     public function __toString(): string
     {
-        $childrenStr = implode(', ', array_map(fn($child) => (string)$child, $this->children));
+        $childrenStr = implode(', ', array_map(fn ($child) => (string)$child, $this->children));
 
-        return $this->name . " (Children: " . ($childrenStr ?: 'none') . ")";
+        return $this->name . ' (Children: ' . ($childrenStr ?: 'none') . ')';
     }
 }
 
@@ -234,7 +234,7 @@ class Transport extends Composite
         $power = $component->attackPower();
 
         if ($this->currentLoad + $power > $this->capacity) {
-            throw new UnitException("Transport overloaded! Cannot add: ".$component->getName());
+            throw new UnitException('Transport overloaded! Cannot add: '.$component->getName());
         }
 
         $this->children[] = $component;
@@ -252,7 +252,7 @@ class Transport extends Composite
         // Обновляем текущую загрузку
         $this->currentLoad = array_sum(
             array_map(
-                fn($child) => $child->attackPower(),
+                fn ($child) => $child->attackPower(),
                 $this->children
             )
         );
@@ -291,7 +291,7 @@ interface FileSystemElement
 {
     public function name(): string;
     public function size(): int;
-    public function print(string $indent = ""): string;
+    public function print(string $indent = ''): string;
 }
 
 class File implements FileSystemElement
@@ -315,9 +315,9 @@ class File implements FileSystemElement
         return $this->size;
     }
 
-    public function print(string $indent = ""): string
+    public function print(string $indent = ''): string
     {
-        return $indent . $this->name . " (" . $this->size . " bytes)\n";
+        return $indent . $this->name . ' (' . $this->size . " bytes)\n";
     }
 }
 
@@ -353,12 +353,12 @@ class Directory implements FileSystemElement
         return $size;
     }
 
-    public function print(string $indent = ""): string
+    public function print(string $indent = ''): string
     {
-        $output = $indent . "D " . $this->name . " (" . $this->size() . " bytes)\n";
+        $output = $indent . 'D ' . $this->name . ' (' . $this->size() . " bytes)\n";
 
         foreach ($this->elements as $element) {
-            $output .= $element->print($indent . "  ");
+            $output .= $element->print($indent . '  ');
         }
 
         return $output;
@@ -406,8 +406,8 @@ class SimpleMenuItem implements MenuItem
 
     public function print(): string
     {
-        $veg = $this->vegetarian ? "(v)" : "";
-        return "  • " . $this->name . " " . $veg . " - $" . number_format($this->price, 2) . "\n";
+        $veg = $this->vegetarian ? '(v)' : '';
+        return '  • ' . $this->name . ' ' . $veg . ' - $' . number_format($this->price, 2) . "\n";
     }
 }
 
@@ -464,7 +464,7 @@ interface Employee
     public function add(Employee $employee): void;
     public function remove(Employee $employee): void;
     public function getSubordinates(): array;
-    public function print(string $indent = ""): string;
+    public function print(string $indent = ''): string;
 }
 
 class Manager implements Employee
@@ -508,7 +508,8 @@ class Manager implements Employee
             $this->subordinates,
             function (Employee $sub) use ($employee) {
                 return $sub !== $employee;
-        });
+            }
+        );
     }
 
     public function getSubordinates(): array
@@ -516,12 +517,12 @@ class Manager implements Employee
         return $this->subordinates;
     }
 
-    public function print(string $indent = ""): string
+    public function print(string $indent = ''): string
     {
-        $output = $indent . "Y " . $this->name . " (" . $this->position . ", $" . number_format($this->salary) . ")\n";
+        $output = $indent . 'Y ' . $this->name . ' (' . $this->position . ', $' . number_format($this->salary) . ")\n";
 
         foreach ($this->subordinates as $subordinate) {
-            $output .= $subordinate->print($indent . "  ");
+            $output .= $subordinate->print($indent . '  ');
         }
 
         return $output;
@@ -558,12 +559,12 @@ class Developer implements Employee
 
     public function add(Employee $employee): void
     {
-        throw new UnitException(get_class($this) . " cannot have subordinates");
+        throw new UnitException(get_class($this) . ' cannot have subordinates');
     }
 
     public function remove(Employee $employee): void
     {
-        throw new UnitException(get_class($this) . " cannot have subordinates");
+        throw new UnitException(get_class($this) . ' cannot have subordinates');
     }
 
     public function getSubordinates(): array
@@ -571,9 +572,9 @@ class Developer implements Employee
         return [];
     }
 
-    public function print(string $indent = ""): string
+    public function print(string $indent = ''): string
     {
-        $output = $indent . "PC " . $this->name . " (" . $this->position . ", $" . number_format($this->salary) . ")\n";
+        $output = $indent . 'PC ' . $this->name . ' (' . $this->position . ', $' . number_format($this->salary) . ")\n";
         return $output;
     }
 }
@@ -715,21 +716,21 @@ class Developer implements Employee
 echo "=== Army Composite Example v1 ===\n";
 
 // Создаем армию
-$army = new Army("Northern Army");
+$army = new Army('Northern Army');
 
 // Создаем корпус
-$corps1 = new Corps("Shock Corps");
-$corps2 = new Corps("Infantry Corps");
+$corps1 = new Corps('Shock Corps');
+$corps2 = new Corps('Infantry Corps');
 
 // Создаем дивизии
-$div1 = new Division("Mechanized Division");
-$div2 = new Division("Armor Division");
-$div3 = new Division("Airborne Division");
+$div1 = new Division('Mechanized Division');
+$div2 = new Division('Armor Division');
+$div3 = new Division('Airborne Division');
 
 // Создаем взводы
-$squad1 = new Squad("Tank Squad");
-$squad2 = new Squad("Infantry Squad");
-$squad3 = new Squad("Recon Squad");
+$squad1 = new Squad('Tank Squad');
+$squad2 = new Squad('Infantry Squad');
+$squad3 = new Squad('Recon Squad');
 
 // Добавляем боевые единицы
 $squad1->add(new Tank()); // 20
@@ -767,26 +768,26 @@ $army->add($corps1);
 $army->add($corps2);
 
 // Выводим информацию
-echo "Army: " . $army->getName() . "\n"; // Army: Northern Army
-echo "Total attack power: " . $army->attackPower() . "\n"; //Total attack power: 112
+echo 'Army: ' . $army->getName() . "\n"; // Army: Northern Army
+echo 'Total attack power: ' . $army->attackPower() . "\n"; //Total attack power: 112
 echo "Structure:\n" . $army . "\n";
 // Northern Army (Children: Shock Corps (Children: Mechanized Division (Children: Tank Squad (Child...)))
 
 // Проверяем вложенность N4 !
 foreach ($army->getChildren() as $corps) {
-    echo "Corps: " . $corps->getName() . " (Power: " . $corps->attackPower() . ")\n";
+    echo 'Corps: ' . $corps->getName() . ' (Power: ' . $corps->attackPower() . ")\n";
     // Corps: Shock Corps (Power: 94)...
 
     foreach ($corps->getChildren() as $division) {
-        echo "  Division: " . $division->getName() . " (Power: " . $division->attackPower() . ")\n";
+        echo '  Division: ' . $division->getName() . ' (Power: ' . $division->attackPower() . ")\n";
         // Mechanized Division (Power: 61)
 
         foreach ($division->getChildren() as $squad) {
-            echo "    Squad: " . $squad->getName() . " (Power: " . $squad->attackPower() . ")\n";
+            echo '    Squad: ' . $squad->getName() . ' (Power: ' . $squad->attackPower() . ")\n";
             // Squad: Infantry Squad (Power: 16)
 
             foreach ($squad->getChildren() as $unit) {
-                echo "      " . $unit . "\n";
+                echo '      ' . $unit . "\n";
                 // Tank (Power: 20) ...
             }
         }
@@ -798,7 +799,7 @@ foreach ($army->getChildren() as $corps) {
 echo "\n=== Transport Example v2 ===\n";
 
 // Создаем транспорт
-$transport = new Transport("Military Transport Plane", 100);
+$transport = new Transport('Military Transport Plane', 100);
 
 // Пытаемся загрузить
 try {
@@ -815,15 +816,15 @@ try {
     $transport->add(new Tank()); // 20 power, сумма станет 89 + 20 = 109 > 100
     // Error: Transport overloaded! Cannot add: Tank
 } catch (UnitException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: ' . $e->getMessage() . "\n";
 }
 
-echo "Transport: " . $transport->getName() . "\n";
-echo "Current load: " . $transport->getCurrentLoad() . "/" . $transport->getCapacity() . "\n";
-echo "Total power: " . $transport->attackPower() . "\n";
+echo 'Transport: ' . $transport->getName() . "\n";
+echo 'Current load: ' . $transport->getCurrentLoad() . '/' . $transport->getCapacity() . "\n";
+echo 'Total power: ' . $transport->attackPower() . "\n";
 echo "Units in transport:\n";
 foreach ($transport->getChildren() as $unit) {
-    echo " - " . $unit . "\n";
+    echo ' - ' . $unit . "\n";
     // - Tank (Power: 20)  etc...
 }
 
@@ -832,20 +833,20 @@ foreach ($transport->getChildren() as $unit) {
 echo "\n=== FileSystem Example v3 ===\n";
 
 // Создаем файловую систему
-$root = new Directory("root");
+$root = new Directory('root');
 
-$docs = new Directory("documents");
-$docs->add(new File("report.pdf", 2048));
-$docs->add(new File("notes.txt", 512));
-$docs->add(new File("project.docx", 4096));
+$docs = new Directory('documents');
+$docs->add(new File('report.pdf', 2048));
+$docs->add(new File('notes.txt', 512));
+$docs->add(new File('project.docx', 4096));
 
-$images = new Directory("images");
-$images->add(new File("photo.jpg", 102400));
-$images->add(new File("screenshot.png", 51200));
+$images = new Directory('images');
+$images->add(new File('photo.jpg', 102400));
+$images->add(new File('screenshot.png', 51200));
 
 $root->add($docs);
 $root->add($images);
-$root->add(new File("readme.md", 1024));
+$root->add(new File('readme.md', 1024));
 
 echo $root->print();
 // D root (161280 bytes)
@@ -858,20 +859,20 @@ echo $root->print();
 echo "\n=== Menu System Example v4 ===\n";
 
 // Создаем меню
-$menu = new MenuCategory("Main Menu");
+$menu = new MenuCategory('Main Menu');
 
-$appetizers = new MenuCategory("Appetizers");
-$appetizers->add(new SimpleMenuItem("Caesar Salad", 8.99, true));
-$appetizers->add(new SimpleMenuItem("Buffalo Wings", 12.99, false));
+$appetizers = new MenuCategory('Appetizers');
+$appetizers->add(new SimpleMenuItem('Caesar Salad', 8.99, true));
+$appetizers->add(new SimpleMenuItem('Buffalo Wings', 12.99, false));
 
-$mainCourses = new MenuCategory("Main Courses");
-$mainCourses->add(new SimpleMenuItem("Grilled Salmon", 22.99, false));
-$mainCourses->add(new SimpleMenuItem("Vegetable Stir Fry", 16.99, true));
-$mainCourses->add(new SimpleMenuItem("Ribeye Steak", 29.99, false));
+$mainCourses = new MenuCategory('Main Courses');
+$mainCourses->add(new SimpleMenuItem('Grilled Salmon', 22.99, false));
+$mainCourses->add(new SimpleMenuItem('Vegetable Stir Fry', 16.99, true));
+$mainCourses->add(new SimpleMenuItem('Ribeye Steak', 29.99, false));
 
-$desserts = new MenuCategory("Desserts");
-$desserts->add(new SimpleMenuItem("Cheesecake", 7.99, true));
-$desserts->add(new SimpleMenuItem("Ice Cream", 5.99, true));
+$desserts = new MenuCategory('Desserts');
+$desserts->add(new SimpleMenuItem('Cheesecake', 7.99, true));
+$desserts->add(new SimpleMenuItem('Ice Cream', 5.99, true));
 
 $menu->add($appetizers);
 $menu->add($mainCourses);
@@ -888,21 +889,21 @@ echo $menu->print();
 echo "\n=== Company Organization Example v5 ===\n";
 
 // Создаем организационную структуру
-$ceo = new Manager("John Smith", "CEO", 150000);
+$ceo = new Manager('John Smith', 'CEO', 150000);
 
-$cto = new Manager("Alice Johnson", "CTO", 120000);
-$cfo = new Manager("Bob Brown", "CFO", 110000);
-$cho = new Manager("Carol White", "CHRO", 100000);
+$cto = new Manager('Alice Johnson', 'CTO', 120000);
+$cfo = new Manager('Bob Brown', 'CFO', 110000);
+$cho = new Manager('Carol White', 'CHRO', 100000);
 
-$devManager = new Manager("Dave Wilson", "Development Manager", 90000);
-$qaManager = new Manager("Eve Adams", "QA Manager", 80000);
+$devManager = new Manager('Dave Wilson', 'Development Manager', 90000);
+$qaManager = new Manager('Eve Adams', 'QA Manager', 80000);
 
-$dev1 = new Developer("Frank Davis", "Senior Developer", 85000);
-$dev2 = new Developer("Grace Miller", "Junior Developer", 60000);
-$dev3 = new Developer("Henry Moore", "Developer", 75000);
+$dev1 = new Developer('Frank Davis', 'Senior Developer', 85000);
+$dev2 = new Developer('Grace Miller', 'Junior Developer', 60000);
+$dev3 = new Developer('Henry Moore', 'Developer', 75000);
 
-$qa1 = new Developer("Irene Taylor", "QA Engineer", 70000);
-$qa2 = new Developer("Jack Hall", "QA Engineer", 65000);
+$qa1 = new Developer('Irene Taylor', 'QA Engineer', 70000);
+$qa2 = new Developer('Jack Hall', 'QA Engineer', 65000);
 
 $ceo->add($cto);
 $ceo->add($cfo);
