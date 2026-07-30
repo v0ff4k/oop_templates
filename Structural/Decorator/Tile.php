@@ -8,14 +8,14 @@
 
 abstract class Tile
 {
-    abstract function getWealthFactor();
+    abstract public function getWealthFactor();
 }
 
 class Plains extends Tile
 {
     private $wealthFactor = 2;
 
-    function getWealthFactor()
+    public function getWealthFactor()
     {
         return $this->wealthFactor;
     }
@@ -63,9 +63,9 @@ class ForestDecorator extends TileDecorator
 $title1 = new Plains();
 var_dump($title1->getWealthFactor()); //2
 
-$title2 = new ForestDecorator( new  Plains() );// 2 + 3
+$title2 = new ForestDecorator(new  Plains());// 2 + 3
 var_dump($title2->getWealthFactor());// 5
 
 // -2  +3  +2  +2 ???
-$title3 = new PollutionDecorator( new ForestDecorator( new DiamondDecorator( new Plains())));
+$title3 = new PollutionDecorator(new ForestDecorator(new DiamondDecorator(new Plains())));
 var_dump($title3->getWealthFactor());// =5?

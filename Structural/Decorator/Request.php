@@ -7,18 +7,20 @@
  */
 
 //main product of what we manipulating
-class RequestHelper{}
+class RequestHelper
+{
+}
 
 //main abstract template for process
 abstract class ProcessRequest
 {
-    abstract function process(RequestHelper $request);
+    abstract public function process(RequestHelper $request);
 }
 
 //main template for process
 class MainProcess extends ProcessRequest
 {
-    function process(RequestHelper $request)
+    public function process(RequestHelper $request)
     {
         print __CLASS__ . ": doing process() in processRequest \n";
     }
@@ -41,36 +43,35 @@ class LogRequest extends DecorateProcess
     public function process(RequestHelper $request)
     {
         print __CLASS__ . ": some logging request \n";
-        $this->processRequest->process( $request);
+        $this->processRequest->process($request);
     }
 }
 
 class AuthRequest extends DecorateProcess
 {
-    function process(RequestHelper $request)
+    public function process(RequestHelper $request)
     {
         print __CLASS__ . ": some  auth-ing  request \n";
-        $this->processRequest->process( $request);
+        $this->processRequest->process($request);
     }
 }
 
 class StructureRequest extends DecorateProcess
 {
-    function process(RequestHelper $request)
+    public function process(RequestHelper $request)
     {
         print __CLASS__ . ": some structuring  request \n";
-        $this->processRequest->process( $request);
+        $this->processRequest->process($request);
     }
 }
 
 
 //client code :::
 
-$process = new AuthRequest( new StructureRequest( (new LogRequest(new MainProcess()))));
-$process->process( new RequestHelper());
+$process = new AuthRequest(new StructureRequest((new LogRequest(new MainProcess()))));
+$process->process(new RequestHelper());
 //OUTPUT:
 // Auth..
 // Structure..
 // Log...
 // Main...
-
