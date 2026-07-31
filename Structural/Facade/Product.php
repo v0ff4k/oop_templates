@@ -7,7 +7,8 @@
  */
 
 //older legacy code that we explain in Facade
-class Product {
+class Product
+{
     public $id;
     public $name;
 
@@ -19,26 +20,30 @@ class Product {
 }
 
 
-function getProductFileLines($file) {
+function getProductFileLines($file)
+{
 
     return file($file);
 }
 
-function getProductObjectFromId($id, $productName) {
+function getProductObjectFromId($id, $productName)
+{
     //implement a request into DB or other, where all data are stored
     return new Product($id, $productName);
 }
 
-function getNameFromLine($line) {
+function getNameFromLine($line)
+{
     if (preg_match("/.*-(.*)\s\d+/", $line, $array)) {
 
-        return str_replace('_',  ' ', $array[1]);
+        return str_replace('_', ' ', $array[1]);
     }
 
     return '';
 }
 
-function getIdFromLine($line) {
+function getIdFromLine($line)
+{
     if (preg_match("/^(\d{1,3})-/", $line, $array)) {
         return $array[1];
     }
@@ -58,7 +63,8 @@ class ProductFacade
         $this->compile();
     }
 
-    private function compile() {
+    private function compile()
+    {
 
         $lines = getProductFileLines($this->file);
         foreach ($lines as $line) {
@@ -68,11 +74,13 @@ class ProductFacade
         }
     }
 
-    function getProducts() {
+    public function getProducts()
+    {
         return $this->products;
     }
 
-    function getProduct($id) {
+    public function getProduct($id)
+    {
         return $this->products[$id];
     }
 
