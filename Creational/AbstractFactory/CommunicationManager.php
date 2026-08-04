@@ -8,20 +8,26 @@
  * Creating series of related or dependent objects without specifying their concrete classes.
  */
 
+namespace Creational\AbstractFactory;
+
 abstract class CommunicationManager
 {
-    abstract function getHeaderText();
-    abstract function getAppEncoder();
-    abstract function getTodoEncoder();
-    abstract function getContactEncoder();
-    abstract function getFooterText();
+    abstract public function getHeaderText();
+
+    abstract public function getAppEncoder();
+
+    abstract public function getTodoEncoder();
+
+    abstract public function getContactEncoder();
+
+    abstract public function getFooterText();
 }
 
 class BlogManager extends CommunicationManager
 {
     public function getHeaderText()
     {
-        return "Blog header text";
+        return 'Blog header text';
     }
 
     // here used template: Factory Method
@@ -44,7 +50,7 @@ class BlogManager extends CommunicationManager
 
     public function getFooterText()
     {
-        return "Blog footer text";
+        return 'Blog footer text';
     }
 }
 
@@ -53,7 +59,7 @@ class BlogManager extends CommunicationManager
 
 abstract class Encoder
 {
-    abstract function encode();
+    abstract public function encode();
 }
 
 class BlogAppEncoder extends Encoder

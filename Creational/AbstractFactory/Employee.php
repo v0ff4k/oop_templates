@@ -6,6 +6,8 @@
  * at: 10.09.19 - 10:09
  */
 
+namespace Creational\AbstractFactory;
+
 abstract class Employee
 {
     protected $name;
@@ -15,19 +17,21 @@ abstract class Employee
         $this->name = $name;
     }
 
-    abstract function fire();
+    abstract public function fire();
 }
 
 class Minion extends Employee
 {
-    public function fire() {
+    public function fire()
+    {
         print $this->name . ", do Minion work! \n";
     }
 }
 
 class Clued extends Employee
 {
-    function fire() {
+    public function fire()
+    {
         //much slower function than print
         printf("%s, call a lower \n", $this->name);
     }
@@ -37,11 +41,13 @@ class NastyBoss
 {
     private $employees = [];
 
-    function addEmployee(Employee $employee) {
+    public function addEmployee(Employee $employee)
+    {
         $this->employees[] = $employee;
     }
 
-    function projectFails() {
+    public function projectFails()
+    {
         if (count($this->employees) > 0) {
             /** @var \Employee $latestEmployee */
             $latestEmployee = array_pop($this->employees);
@@ -53,11 +59,9 @@ class NastyBoss
 
 //client code:::  with example of polymorphism
 $oBoss = new NastyBoss();
-$oBoss->addEmployee( new Minion('John'));
-$oBoss->addEmployee( new Clued('Ivan'));
-$oBoss->addEmployee( new Minion('Mari'));
+$oBoss->addEmployee(new Minion('John'));
+$oBoss->addEmployee(new Clued('Ivan'));
+$oBoss->addEmployee(new Minion('Mari'));
 $oBoss->projectFails(); //Mari, do Minion work
 $oBoss->projectFails(); //Ivan, call a lower
 $oBoss->projectFails(); //John, do Minion work
-
-

@@ -6,16 +6,20 @@
  * at: 10.09.19 - 10:09
  */
 
+namespace Creational\FactoryMethod;
+
 abstract class ApptEncoder
 {
-    abstract function  encode();
+    abstract public function encode();
 }
 
 abstract class CommsManager
 {
-    abstract function getHeaderText(); //just for example
-    abstract function getApptEncoder(); //must return only ApptEncoder
-    abstract function getFooterText(); //just for example
+    abstract public function getHeaderText(); //just for example
+
+    abstract public function getApptEncoder(); //must return only ApptEncoder
+
+    abstract public function getFooterText(); //just for example
 }
 
 //example of realisation
@@ -75,4 +79,3 @@ class MegaCommsManager extends CommsManager
         return "MegaCal footer \n";
     }
 }
-
