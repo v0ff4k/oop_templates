@@ -842,7 +842,7 @@ class ObjectPoolBuilder
 public function getPool(string $type, int $maxObjects = 10): object
 {
     return match ($type) {
-    'database' => new ConnectionPool($maxObjects),
+        'database' => new ConnectionPool($maxObjects),
         'worker' => new WorkerPool($maxObjects),
         'cache' => new CachePool($maxObjects),
         'pdf' => new PDFPool($maxObjects),
@@ -873,8 +873,8 @@ class PoolFactory
     public function create(PoolType $type, int $maxObjects = 10, array $config = []): object
     {
         return match ($type) {
-        PoolType::DATABASE => new ConnectionPool(
-        maxConnections: $maxObjects,
+            PoolType::DATABASE => new ConnectionPool(
+                maxConnections: $maxObjects,
                 host: $config['host'] ?? 'localhost',
                 database: $config['database'] ?? 'test',
                 username: $config['username'] ?? 'root',
