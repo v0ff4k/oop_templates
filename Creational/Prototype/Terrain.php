@@ -1,51 +1,80 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Created by pSom.
  * User: 9r00+
  * at: 19.09.19 - 09:11
+ * upd: 18.08.26 - 18:31
  */
 
 namespace Creational\Prototype;
 
-class Sea {}
-class EarthSea extends Sea {}
-class MarsSea extends Sea {}
-
-class Plains
+abstract class Sea
 {
-    private $visibility = 1;
+}
 
-    public function __construct($visibility)
+class EarthSea extends Sea
+{
+}
+
+class MarsSea extends Sea
+{
+}
+
+abstract class Plains
+{
+    // PHP 8+: Объявление свойства прямо в конструкторе
+    public function __construct(private int $visibility = 1)
     {
-        $this->visibility = $visibility;
+    }
+
+    public function getVisibility(): int
+    {
+        return $this->visibility;
     }
 }
-class EarthPlains extends Plains {}
-class MarsPlains extends Plains {}
 
-class Lowlands {}
-class EarthLowlands extends Lowlands {}
-class MarsLowlands extends Lowlands {}
+class EarthPlains extends Plains
+{
+}
 
+class MarsPlains extends Plains
+{
+}
+
+abstract class Lowlands
+{
+}
+
+class EarthLowlands extends Lowlands
+{
+}
+
+class MarsLowlands extends Lowlands
+{
+}
+
+/**
+ * Class TerrainFactory - основной класс для быстрого создания(клонов) необходимых классов.
+ * @package Creational\Prototype
+ */
 class TerrainFactory
 {
-    private $sea;
-    private $plains;
-    private $lowlands;
-
-    public function __construct(Sea $sea, Plains $plains, Lowlands $lowlands)
-    {
-        $this->sea = $sea;
-        $this->plains = $plains;
-        $this->lowlands = $lowlands;
+    // PHP 8+: Продвижение свойств конструктора (Constructor Property Promotion)
+    public function __construct(
+        private Sea $sea,
+        private Plains $plains,
+        private Lowlands $lowlands
+    ) {
     }
 
     /**
      * Get getSea
      * @return Sea
      */
-    public function getSea()
+    public function getSea(): Sea
     {
         return clone $this->sea;
     }
@@ -54,25 +83,42 @@ class TerrainFactory
      * Get getPlains
      * @return Plains
      */
-    public function getPlains()
+    public function getPlains(): Plains
     {
-        return clone  $this->plains;
+        return clone $this->plains;
     }
 
     /**
      * Get getLowlands
      * @return Lowlands
      */
-    public function getLowlands()
+    public function getLowlands(): Lowlands
     {
-        return clone  $this->lowlands;
+        return clone $this->lowlands;
     }
 }
 
 
-///client code:::
+// Простой пример клиентского кода:
 
-$factory = new TerrainFactory(new EarthSea(), new EarthPlains(2), new MarsLowlands());
-var_dump($factory->getLowlands());
-var_dump($factory->getPlains());
-var_dump($factory->getSea());
+echo "--- Создаем фабрику для Земли (Earth) ---\n";
+$earthFactory = new TerrainFactory(
+    new EarthSea(),
+    new EarthPlains(2),
+    new EarthLowlands()
+);
+
+echo "--- Объекты Земли(авто копирование) ---\n";
+var_dump($earthFactory->getSea());
+var_dump($earthFactory->getPlains());
+var_dump($earthFactory->getLowlands());
+
+// Создаем фабрику для Марса (Mars)
+$marsFactory = new TerrainFactory(
+    new MarsSea(),
+    new MarsPlains(5),
+    new MarsLowlands()
+);
+
+echo "\n--- Объекты Марса (Mars) ---\n";
+var_dump($marsFactory->getSea());
