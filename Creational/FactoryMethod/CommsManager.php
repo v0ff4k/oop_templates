@@ -7,6 +7,7 @@ declare(strict_types=1);
  * User: 9r00+
  * at: 10.09.19 - 10:09
  * upd: 06.08.2026 - 12:18
+ * upd: 20.08.2026 - 20:35  make real FactoryMethod +DependencyInversion
  */
 
 namespace Creational\FactoryMethod;
@@ -22,19 +23,29 @@ abstract class ApptEncoder
 
 /**
  * Class CommsManager
+ *
  * @package Creational\FactoryMethod
  */
 abstract class CommsManager
 {
-    abstract public function getHeaderText(): string; //just for example
+    // Factory Method - создает объект продукта
+    abstract public function getApptEncoder(): ApptEncoder;
 
-    abstract public function getApptEncoder(): ApptEncoder; //must return only ApptEncoder
+    // Дополнительные методы (не обязательны для шаблона)
+    public function getHeaderText(): string
+    {
+        return '';
+    }
 
-    abstract public function getFooterText(): string; //just for example
+    public function getFooterText(): string
+    {
+        return '';
+    }
 }
 
 /**
- * Class BloggsAptEncoder - example of realisation
+ * Class BloggsAptEncoder - Конкретный продукт
+ *
  * @package Creational\FactoryMethod
  */
 class BloggsAptEncoder extends ApptEncoder
@@ -45,18 +56,22 @@ class BloggsAptEncoder extends ApptEncoder
     }
 }
 
-
+/**
+ * Class BloggsCommsManager - Конкретный создатель
+ *
+ * @package Creational\FactoryMethod
+ */
 class BloggsCommsManager extends CommsManager
 {
+    // Factory Method реализация - создает конкретный продукт
+    public function getApptEncoder(): ApptEncoder
+    {
+        return new BloggsAptEncoder();
+    }
+
     public function getHeaderText(): string
     {
         return "BloggsCal header \n";
-    }
-
-    /** @return ApptEncoder|BloggsAptEncoder */
-    public function getApptEncoder(): BloggsAptEncoder
-    {
-        return new BloggsAptEncoder();
     }
 
     public function getFooterText(): string
@@ -66,7 +81,7 @@ class BloggsCommsManager extends CommsManager
 }
 
 /**
- * Class MegaAptEncoder - example of extra realisation, by adding new  "ENCODER"
+ * Class MegaAptEncoder - Другой конкретный продукт
  *
  * @package Creational\FactoryMethod
  */
@@ -79,21 +94,21 @@ class MegaAptEncoder extends ApptEncoder
 }
 
 /**
- * Class MegaCommsManager - and add new  "MANAGER" for encoder
+ * Class MegaCommsManager - Другой конкретный создатель
  *
  * @package Creational\FactoryMethod
  */
 class MegaCommsManager extends CommsManager
 {
+    //Factory Method реализация - создает другой конкретный продукт
+    public function getApptEncoder(): ApptEncoder
+    {
+        return new MegaAptEncoder();
+    }
+
     public function getHeaderText(): string
     {
         return "MegaCal header \n";
-    }
-
-    /** @return ApptEncoder|MegaAptEncoder */
-    public function getApptEncoder(): MegaAptEncoder
-    {
-        return new MegaAptEncoder();
     }
 
     public function getFooterText(): string
@@ -103,39 +118,24 @@ class MegaCommsManager extends CommsManager
 }
 
 
-// --- Клиентский код, указываем нужные  "менеджеры" ---
-// use Creational\FactoryMethod\CommsManager;
-// use Creational\FactoryMethod\BloggsCommsManager;
-// use Creational\FactoryMethod\MegaCommsManager;
-
-/**
- * Универсальная функция(Factory Method) для рендеринга данных.
- * Ей абсолютно всё равно, какой именно менеджер пришел на вход.
- */
+// Клиентский код - работает с абстракциями
 function renderOutput(CommsManager $manager): void
 {
-    // 1. Выводим заголовок
     echo $manager->getHeaderText();
 
-    // 2. Запрашиваем фабричный метод создать кодировщик
+    // Фабричный метод обеспечивает инверсию зависимостей
     $encoder = $manager->getApptEncoder();
-
-    // 3. Кодируем данные
     echo $encoder->encode();
 
-    // 4. Выводим футер
     echo $manager->getFooterText();
     echo "---------------------------\n";
 }
 
-// --- Демонстрация работы ---
-
-// Ситуация 1: Работаем с системой Bloggs
+// Демонстрация работы
 echo "=== Тестируем BloggsCal ===\n";
 $bloggsManager = new BloggsCommsManager();
 renderOutput($bloggsManager);
 
-// Ситуация 2: Легко переключаемся на систему Mega
 echo "=== Тестируем MegaCal ===\n";
 $megaManager = new MegaCommsManager();
 renderOutput($megaManager);
