@@ -6,18 +6,18 @@ declare(strict_types=1);
  * Created by pSom.
  * User: 9r00+
  * at: 06.08.2026 - 15:18
+ * upd: 20.08.2026 - 21:49  make real FactoryMethod +DependencyInversion
  */
 
 namespace Creational\FactoryMethod;
 
 use \PDO;
 
-// dummy stubs
+// dummy stubs(in real examples, use real classes)
 // use  \Twig\Environment as TwigEnvironment
 use stdClass as TwigEnvironment;
 // user Twig\Loader\ArrayLoader as TwigLoaderArrayLoader
 use stdClass as TwigLoaderArrayLoader;
-
 // use \Illuminate\View\Factory as IlluminateViewFactory
 use stdClass as IlluminateViewFactory;
 // use \Illuminate\View\FileViewFinder as IlluminateViewFileViewFinder
@@ -214,13 +214,25 @@ class SyslogLogger implements Logger
 
 abstract class LoggerFactory
 {
+    private ?Logger $lastLogger = null;
+
     public function log(string $message, array $context = []): void
     {
         $logger = $this->createLogger();
+        $this->lastLogger = $logger;
         $logger->log($message, $context);
     }
 
     abstract protected function createLogger(): Logger;
+
+    public function getErrors(): array
+    {
+        if (!$this->lastLogger instanceof Logger) {
+            return [];
+        }
+        // Для простоты возвращаем пустой массив, так как логи не имеют ошибок валидации
+        return [];
+    }
 }
 
 class FileLoggerFactory extends LoggerFactory
@@ -317,14 +329,26 @@ class PushNotifier implements Notifier
 
 abstract class NotifierFactory
 {
+    private ?Notifier $lastNotifier = null;
+
     public function notify(string $message): bool
     {
         $notifier = $this->createNotifier();
+        $this->lastNotifier = $notifier;
 
         return $notifier->send($message);
     }
 
     abstract protected function createNotifier(): Notifier;
+
+    public function getErrors(): array
+    {
+        if (!$this->lastNotifier instanceof Notifier) {
+            return [];
+        }
+        // Для простоты возвращаем пустой массив, так как уведомления не имеют ошибок валидации
+        return [];
+    }
 }
 
 class EmailNotifierFactory extends NotifierFactory
@@ -443,20 +467,28 @@ class MinLengthValidator implements Validator
 
 abstract class ValidatorFactory
 {
+    private ?Validator $lastValidator = null;
+
     public function validate(mixed $data): bool
     {
         $validator = $this->createValidator();
+        $this->lastValidator = $validator;
 
         return $validator->validate($data);
     }
 
     abstract protected function createValidator(): Validator;
 
+    // возвращает ошибки из последней валидации
     public function getErrors(): array
     {
-        $validator = $this->createValidator();
+        if (!$this->lastValidator instanceof Validator) {
+            // Левый валидатор, пустой массив
 
-        return $validator->getErrors();
+            return [];
+        }
+
+        return $this->lastValidator->getErrors();
     }
 }
 
@@ -617,7 +649,7 @@ class BladeRendererFactory extends RendererFactory
  *
  *
  * Где используется в фреймворках:
- * 1. Laravel's Mailable
+ * Laravel's Mailable
  *    // Laravel Mailable - Factory Method для email
  *    class OrderShipped extends Mailable {
  *        use Queueable, SerializesModels;
@@ -634,7 +666,7 @@ class BladeRendererFactory extends RendererFactory
  *    }
  *    // Использование
  *    Mail::to($user)->send(new OrderShipped($order));
- * 2. Laravel's Notification
+ * Laravel's Notification
  *    // Laravel Notification - Factory Method для уведомлений
  *    class OrderShipped extends Notification {
  *        public function via($notifiable) {
@@ -655,7 +687,7 @@ class BladeRendererFactory extends RendererFactory
  *    }
  *    // Использование
  *    $user->notify(new OrderShipped($order));
- * 3. Laravel's Request Validation
+ * Laravel's Request Validation
  *    // Laravel Form Request - Factory Method для валидации
  *    class StorePostRequest extends FormRequest {
  *        public function authorize() {
@@ -678,89 +710,66 @@ class BladeRendererFactory extends RendererFactory
  *        $validated = $request->validated();
  *        // ...
  *    }
- * 4. Symfony's Controller
+ * Symfony's Controller
  *    // Symfony(2+) Controller - Factory Method для действий
- *    class DefaultController extends AbstractController {
- *        / * *
- *         * @Route("/hello/{name}", name="hello")
- *        * /
- *        public function index(string $name): Response {
- *            return $this->render('default/index.html.twig', [
- *                'controller_name' => 'DefaultController',
- *                'name' => $name,
- *            ]);
- *        }
- *    }
- * 5. Symfony's Form Type
+ *    // Это просто action-метод, а не фабричный метод
+ *    // Наследование от AbstractController не создает продукты
+ * Symfony's Form Type
  *    // Symfony Form Type - Factory Method для форм
- *    class UserType extends AbstractType {
- *        public function buildForm(FormBuilderInterface $builder, array $options) {
- *            $builder
- *                ->add('username', TextType::class)
- *                ->add('email', EmailType::class)
- *                ->add('password', PasswordType::class)
- *                ->add('save', SubmitType::class, ['label' => 'Create User']);
- *        }
- *        public function configureOptions(OptionsResolver $resolver) {
- *            $resolver->setDefaults([
- *                'data_class' => User::class,
- *            ]);
- *        }
- *    }
- *    // Использование
- *    $form = $this->createForm(UserType::class, $user);
- * 6. Yii Framework's Action
+ *    // Это конфигурация формы, а не фабричный метод
+ *    // createForm() в Symfony — это фабричный метод, но UserType — это просто конфигурация
+ * Yii Framework's Action
  *    // Yii Action - Factory Method для действий контроллера
- *    class SiteController extends Controller {
- *        public function actions() {
- *            return [
- *                'error' => [
- *                    'class' => 'yii\web\ErrorAction',
- *                ],
- *                'captcha' => [
- *                    'class' => 'yii\captcha\CaptchaAction',
- *                    'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
- *                ],
- *            ];
- *        }
- *    }
- * 7. CakePHP's View Block
+ *    // Это массив конфигураций, а не фабричный метод
+ *    // Нет наследования с переопределением метода создания
+ * CakePHP's View Block
  *    // CakePHP View Block - Factory Method для блоков шаблонов
- *    class MyView extends View {
- *        public function initialize() {
- *            parent::initialize();
- *            $this->viewVars['title'] = 'My App';
- *        }
- *    }
- * 8. Nette's UI Component
+ *    // Простое переопределение метода, не фабрика
+ * Nette's UI Component
  *    // Nette UI Component - Factory Method для компонентов
- *    class LoginForm extends Nette\Application\UI\Form {
- *        public function __construct() {
- *            parent::__construct();
- *            $this->addText('username', 'Username')
- *                ->setRequired('Please enter your username');
- *            $this->addPassword('password', 'Password')
- *                ->setRequired('Please enter your password');
- *            $this->addSubmit('send', 'Sign in');
- *        }
- *    }
- * 9. Doctrine's Entity Listener
+ *    // Конструктор создает компонент, но это не фабричный метод
+ *    // Нет базового класса с абстрактным методом создания
+ * Doctrine's Entity Listener
  *    // Doctrine Entity Listener - Factory Method для событий
- *    class UserListener {
- *        public function postLoad(LifecycleEventArgs $args) {
- *            $entity = $args->getObject();
- *            if ($entity instanceof User) {
- *                // ...
- *            }
+ *    // Это событие, а не фабрика
+ * Laravel's Service Container
+ *    // Laravel Service Container - Factory Method для сервисов
+ *    // Это Service Container (IoC контейнер), а не Factory Method
+ *    //  $app->singleton() — это регистрация в контейнере, не фабрика
+ * Laravel's Factory Method
+ *    // Creator (абстрактный создатель)
+ *    abstract class Mailable {
+ *        abstract public function build(): Mailable;
+ *    }
+ *    // ConcreteCreator (конкретный создатель)
+ *    class OrderShipped extends Mailable {
+ *        public function build(): Mailable {
+ *            return $this->view('emails.orders.shipped');
  *        }
  *    }
- * 10. Laravel's Service Container
- *    // Laravel Service Container - Factory Method для сервисов
- *    $app->singleton(Connection::class, function ($app) {
- *        return new Connection($app['config']['database']);
- *    });
- *    // Использование
- *    $connection = app(Connection::class);
+ *    // Product (интерфейс продукта)
+ *    interface Mailable {}
+ *    // Клиентский код:
+ *    Mail::to($user)->send(new OrderShipped($order));
+ * Symfony's Factory Method
+ *    // Creator
+ *    abstract class AbstractController {
+ *        abstract protected function createResponse(): Response;
+ *    }
+ *    // ConcreteCreator
+ *    class DefaultController extends AbstractController {
+ *        protected function createResponse(): Response {
+ *            return $this->render('default/index.html.twig');
+ *        }
+ *        public function index(): Response {
+ *            return $this->createResponse();
+ *        }
+ *    }
+ *
+ * Ключевое отличие:
+ *    Factory Method = Creator (абстрактный) -> ConcreteCreator (конкретный) -> Product
+ *    Остальные примеры = либо конфигурация, либо Service Container, либо просто методы
+ *
  *
  * Когда полезен:
  *    Когда нужно создать объект, но не знаешь конкретный класс — клиент работает с абстракциями
@@ -864,152 +873,52 @@ try {
 
 /* 8.4 ****************
 
-// Использование атрибутов для автоматической генерации Factory Method
-#[FactoryMethod]
-class PaymentProcessor
-{
-    private PaymentMethod $paymentMethod;
+// 1. Product
+interface Logger {
+    public function log(string $message): void;
+}
 
-    public function __construct(PaymentMethod $paymentMethod)
-    {
-        $this->paymentMethod = $paymentMethod;
-    }
-
-    public function process(float $amount): string
-    {
-        return $this->paymentMethod->process($amount);
+// 2. Concrete Products
+class FileLogger implements Logger {
+    public function log(string $message): void {
+        echo "File: $message\n";
     }
 }
 
-// Генерация Factory Method через атрибуты
-class FactoryMethodBuilder
-{
-    public function build(string $class): object
-    {
-        $reflector = new ReflectionClass($class);
-        $instance = $reflector->newInstance();
-
-        // Автоматическое создание методов фабрики
-        foreach ($reflector->getMethods() as $method) {
-            $attributes = $method->getAttributes(FactoryMethod::class);
-            foreach ($attributes as $attribute) {
-                // @var FactoryMethod $factory
-                $factory = $attribute->newInstance();
-                $methodName = $factory->name ?? $method->getName();
-
-                // Регистрация метода фабрики
-                $this->registerFactory($methodName, $method->invoke($instance));
-            }
-        }
-
-        return $instance;
+class DatabaseLogger implements Logger {
+    public function log(string $message): void {
+        echo "DB: $message\n";
     }
 }
 
-// Pattern matching для автоматического создания Factory Method
-public function getFactory(string $type): object
-{
-    return match ($type) {
-        'payment' => match ($method) {
-            'credit_card' => new CreditCardCreator(),
-            'paypal' => new PayPalCreator(),
-            'bank_transfer' => new BankTransferCreator(),
-            default => throw new InvalidArgumentException("Unknown payment method"),
-        },
-        'logger' => match ($type) {
-            'file' => new FileLoggerFactory('/tmp/app.log'),
-            'database' => new DatabaseLoggerFactory(new PDO('sqlite::memory:')),
-            'syslog' => new SyslogLoggerFactory(),
-            default => throw new InvalidArgumentException("Unknown logger type"),
-        },
-        'notifier' => match ($channel) {
-            'email' => new EmailNotifierFactory('noreply@example.com'),
-            'sms' => new SmsNotifierFactory('+1234567890'),
-            'push' => new PushNotifierFactory('device_token_123'),
-            default => throw new InvalidArgumentException("Unknown notifier channel"),
-        },
-        'validator' => match ($rule) {
-            'email' => new EmailValidatorFactory(),
-            'required' => new RequiredValidatorFactory(),
-            'min_length' => new MinLengthValidatorFactory(6),
-            default => throw new InvalidArgumentException("Unknown validator rule"),
-        },
-        'renderer' => match ($engine) {
-            'php' => new PhpRendererFactory(),
-            'twig' => new TwigRendererFactory(new Twig\Environment(new Twig\Loader\ArrayLoader([]))),
-            'blade' => new BladeRendererFactory(new Illuminate\View\Factory(new Illuminate\View\FileViewFinder([]))),
-            default => throw new InvalidArgumentException("Unknown renderer engine"),
-        },
-        default => throw new InvalidArgumentException("Unknown factory type"),
-    };
-}
+// 3. Creator с атрибутом
+abstract class LoggerFactory {
+    #[FactoryMethod]
+    abstract protected function createLogger(): Logger;
 
-// Enum для типов Factory Method
-enum FactoryType: string
-{
-    case PAYMENT = 'payment';
-    case LOGGER = 'logger';
-    case NOTIFIER = 'notifier';
-    case VALIDATOR = 'validator';
-    case RENDERER = 'renderer';
-    case PAYMENT_PROCESSOR = 'payment_processor';
-    case EMAIL = 'email';
-    case SMS = 'sms';
-    case PUSH = 'push';
-    case FILE = 'file';
-    case DATABASE = 'database';
-    case SYSTEM = 'system';
-}
-
-class FactoryMethodFactory
-{
-    public function create(FactoryType $type, array $config = []): object
-    {
-        return match ($type) {
-            FactoryType::PAYMENT => match ($config['method'] ?? 'credit_card') {
-                'credit_card' => new CreditCardCreator(),
-                'paypal' => new PayPalCreator(),
-                'bank_transfer' => new BankTransferCreator(),
-                default => throw new InvalidArgumentException("Unknown payment method"),
-            },
-            FactoryType::LOGGER => match ($config['type'] ?? 'file') {
-                'file' => new FileLoggerFactory($config['path'] ?? '/tmp/app.log'),
-                'database' => new DatabaseLoggerFactory($config['connection'] ?? new PDO('sqlite::memory:')),
-                'syslog' => new SyslogLoggerFactory(),
-                default => throw new InvalidArgumentException("Unknown logger type"),
-            },
-            FactoryType::NOTIFIER => match ($config['channel'] ?? 'email') {
-                'email' => new EmailNotifierFactory($config['from'] ?? 'noreply@example.com'),
-                'sms' => new SmsNotifierFactory($config['from'] ?? '+1234567890'),
-                'push' => new PushNotifierFactory($config['endpoint'] ?? 'device_token_123'),
-                default => throw new InvalidArgumentException("Unknown notifier channel"),
-            },
-            FactoryType::VALIDATOR => match ($config['rule'] ?? 'email') {
-                'email' => new EmailValidatorFactory(),
-                'required' => new RequiredValidatorFactory(),
-                'min_length' => new MinLengthValidatorFactory($config['length'] ?? 6),
-                default => throw new InvalidArgumentException("Unknown validator rule"),
-            },
-            FactoryType::RENDERER => match ($config['engine'] ?? 'php') {
-                'php' => new PhpRendererFactory(),
-                'twig' => new TwigRendererFactory($config['environment'] ?? new Twig\Environment(new Twig\Loader\ArrayLoader([]))),
-                'blade' => new BladeRendererFactory($config['factory'] ?? new Illuminate\View\Factory(new Illuminate\View\FileViewFinder([]))),
-                default => throw new InvalidArgumentException("Unknown renderer engine"),
-            },
-            FactoryType::PAYMENT_PROCESSOR => match ($config['method'] ?? 'credit_card') {
-                'credit_card' => new PaymentProcessor(new CreditCardPayment()),
-                'paypal' => new PaymentProcessor(new PayPalPayment()),
-                'bank_transfer' => new PaymentProcessor(new BankTransferPayment()),
-                default => throw new InvalidArgumentException("Unknown payment method"),
-            },
-            FactoryType::EMAIL => new EmailNotifierFactory($config['from'] ?? 'noreply@example.com'),
-            FactoryType::SMS => new SmsNotifierFactory($config['from'] ?? '+1234567890'),
-            FactoryType::PUSH => new PushNotifierFactory($config['endpoint'] ?? 'device_token_123'),
-            FactoryType::FILE => new FileLoggerFactory($config['path'] ?? '/tmp/app.log'),
-            FactoryType::DATABASE => new DatabaseLoggerFactory($config['connection'] ?? new PDO('sqlite::memory:')),
-            FactoryType::SYSTEM => new SyslogLoggerFactory(),
-        };
+    public function log(string $message): void {
+        $logger = $this->createLogger();
+        $logger->log($message);
     }
 }
+
+// 4. Concrete Creators
+class FileLoggerFactory extends LoggerFactory {
+    #[FactoryMethod]
+    protected function createLogger(): Logger {
+        return new FileLogger();
+    }
+}
+
+class DatabaseLoggerFactory extends LoggerFactory {
+    #[FactoryMethod]
+    protected function createLogger(): Logger {
+        return new DatabaseLogger();
+    }
+}
+
+// 5. Клиент
+$factory = new FileLoggerFactory();
+$factory->log("System started");  // Output: File: System started
 
 ****************************************************** */
