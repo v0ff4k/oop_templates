@@ -6,6 +6,7 @@ declare(strict_types=1);
  * Created by pSom.
  * User: 9r00+
  * at: 17.08.2026 - 20:13
+ * at: 20.08.2026 - 23:43 - optimize and (static -> simple) Factory
  */
 
 namespace Structural\SimpleFactory;
@@ -73,15 +74,19 @@ class StdoutLogger implements Logger
  */
 class LoggerFactory
 {
+    public const TYPE_FILE = 'file';
+    public const TYPE_DATABASE = 'database';
+    public const TYPE_STDOUT = 'stdout';
+
     /**
-     * Статический метод для создания логгеров
+     * НЕ статический метод для создания логгеров
      */
-    public static function create(string $type, array $config = []): Logger
+    public function create(string $type, array $config = []): Logger
     {
         return match (strtolower($type)) {
-            'file' => new FileLogger($config['path'] ?? '/tmp/app.log'),
-            'database' => new DatabaseLogger($config['connection'] ?? new PDO('sqlite::memory:')),
-            'stdout' => new StdoutLogger(),
+            self::TYPE_FILE => new FileLogger($config['path'] ?? sys_get_temp_dir() . '/app.log'),
+            self::TYPE_DATABASE => new DatabaseLogger($config['connection'] ?? new PDO('sqlite::memory:')),
+            self::TYPE_STDOUT => new StdoutLogger(),
             default => throw new \InvalidArgumentException("Unknown logger type: $type"),
         };
     }
@@ -94,12 +99,12 @@ class LoggerFactory
  * Основная идея
  *    Product — интерфейс или базовый класс для создаваемых объектов
  *    ConcreteProduct — конкретные реализации Product
- *    SimpleFactory — класс с статическим методом create(), который возвращает экземпляры различных классов
+ *    SimpleFactory — класс с НЕстатическим методом create(), который возвращает экземпляры различных классов
  *
  * Как это работает:
  *    Product определяет интерфейс для создаваемых объектов
  *    ConcreteProduct реализует Product
- *    SimpleFactory содержит статический метод create(), который:
+ *    SimpleFactory содержит НЕстатический метод create(), который:
  *    Принимает тип объекта для создания
  *    Возвращает экземпляр соответствующего ConcreteProduct
  *    Инкапсулирует логику создания
@@ -113,7 +118,6 @@ class LoggerFactory
  * Недостатки:
  *    Нарушение Single Responsibility — фабрика управляет многими типами
  *    Большой класс — может стать громоздким при большом количестве типов
- *    Сложность тестирования — статические методы труднее мокировать
  *    Жесткая привязка — фабрика знает о всех конкретных классах
  *    Отсутствие гибкости — сложно настраивать создание каждого типа
  *
@@ -192,6 +196,12 @@ class LoggerFactory
  *    event(new OrderShipped($order));
  *    // Внутри Dispatcher::dispatch()
  *    $this->listener($event)->handle($event);
+ * 11. Laravel's Model Factory
+ *    $factory->define(User::class, function (Faker $faker) {
+ *        return [ 'name' => $faker->name, 'email' => $faker->unique()->safeEmail,];
+ *    });
+ *    $users = factory(User::class, 50)->create();
+ *
  *
  * Когда полезен:
  *    Когда нужно создать один из нескольких типов — но не нужно расширять фабрику
@@ -201,7 +211,7 @@ class LoggerFactory
  *
  *
  *             Разница между SimpleFactory и другими паттернами:
- * SimpleFactory = Один класс для всех типов
+ * StaticFactory = Один класс для всех типов
  *   Статический метод create()
  *     Простая реализация
  *       Нет наследования
@@ -223,23 +233,27 @@ class LoggerFactory
 try {
     echo "=== Simple Factory Pattern Example ===\n\n";
     // Клиент не знает о конкретных классах логгеров
+    $loggerFactory = new LoggerFactory();
 
     /** @var FileLogger $fileLogger  Пример 1: FileLogger */
-    $fileLogger = LoggerFactory::create('file', ['path' => '/var/log/app.log']);
+    $fileLogger = $loggerFactory->create('file', ['path' => '/var/log/app.log']);
     $fileLogger->log('Application started');
     unset($fileLogger);
 
-
-    /** @var DatabaseLogger $dbLogger Пример 2: DatabaseLogger */
-    $dbLogger = LoggerFactory::create('database', [
-        'connection' => new PDO('mysql:host=localhost;dbname=test', 'root', '')
-    ]);
+    try {
+        /** @var DatabaseLogger $dbLogger Пример 2: DatabaseLogger */
+        $dbLogger = $loggerFactory->create('database', [
+            'connection' => new PDO('mysql:host=localhost;dbname=test', 'root', '')
+        ]);
+    } catch (\PDOException $e) {
+        // Обработка ошибки подключения
+    }
     $dbLogger->log('User logged in');
     unset($dbLogger);
 
 
     /** @var StdoutLogger $stdoutLogger  Пример 3: StdoutLogger */
-    $stdoutLogger = LoggerFactory::create('stdout');
+    $stdoutLogger = $loggerFactory->create('stdout');
     $stdoutLogger->log('Debug message');
     unset($stdoutLogger);
 
@@ -250,280 +264,30 @@ try {
 
 /* php8.4 *********************************
 
-// Использование атрибутов для автоматической генерации SimpleFactory
-#[SimpleFactory]
-class PaymentMethodFactory
+enum LoggerType: string
 {
-    // Фабрика будет автоматически сгенерирована
-}
-
-// Генерация SimpleFactory через атрибуты
-class SimpleFactoryBuilder
-{
-    public function build(string $class): object
-    {
-        $reflector = new ReflectionClass($class);
-        $instance = $reflector->newInstance();
-
-        // Автоматическое создание метода create
-        if (!$reflector->hasMethod('create')) {
-            $method = new ReflectionMethod($class, '__construct');
-            $parameters = $method->getParameters();
-
-            $factory = new class($class, $parameters) {
-                private string $class;
-                private array $parameters;
-
-                public function __construct(string $class, array $parameters)
-                {
-                    $this->class = $class;
-                    $this->parameters = $parameters;
-                }
-
-                public static function create(string $type, array $config = []): object
-                {
-                    return match (strtolower($type)) {
-                        // Автоматически генерируемые типы
-                        default => throw new \InvalidArgumentException("Unknown type: $type"),
-                    };
-                }
-            };
-
-            return $factory;
-        }
-
-        return $instance;
-    }
-}
-
-// Pattern matching для автоматического создания SimpleFactory
-public function getFactory(string $type): object
-{
-    return match ($type) {
-        'payment' => new class {
-            public static function create(string $method): PaymentMethod
-            {
-                return match (strtolower($method)) {
-                    'credit_card', 'card', 'cc' => new CreditCardPayment(),
-                    'paypal', 'pp' => new PayPalPayment(),
-                    'bank_transfer', 'transfer', 'wire' => new BankTransferPayment(),
-                    'crypto', 'bitcoin', 'ethereum' => new CryptoPayment(),
-                    default => throw new \InvalidArgumentException("Unknown payment method"),
-                };
-            }
-        },
-        'logger' => new class {
-            public static function create(string $type, array $config = []): Logger
-            {
-                return match (strtolower($type)) {
-                    'file' => new FileLogger($config['path'] ?? '/tmp/app.log'),
-                    'database' => new DatabaseLogger($config['connection'] ?? new PDO('sqlite::memory:')),
-                    'stdout' => new StdoutLogger(),
-                    default => throw new \InvalidArgumentException("Unknown logger type"),
-                };
-            }
-        },
-        'notifier' => new class {
-            public static function create(string $channel): Notifier
-            {
-                return match (strtolower($channel)) {
-                    'email', 'e-mail' => new EmailNotifier(),
-                    'sms', 'text' => new SmsNotifier(),
-                    'push', 'notification' => new PushNotifier(),
-                    default => throw new \InvalidArgumentException("Unknown notification channel"),
-                };
-            }
-        },
-        'validator' => new class {
-            public static function create(string $rule, array $config = []): Validator
-            {
-                return match (strtolower($rule)) {
-                    'email' => new EmailValidator(),
-                    'required' => new RequiredValidator(),
-                    'min_length', 'min' => new MinLengthValidator($config['length'] ?? 6),
-                    default => throw new \InvalidArgumentException("Unknown validation rule"),
-                };
-            }
-        },
-        'renderer' => new class {
-            public static function create(string $engine, mixed $config = null): Renderer
-            {
-                return match (strtolower($engine)) {
-                    'php' => new PhpRenderer(),
-                    'twig' => new TwigRenderer($config ?? new Twig\Environment(new Twig\Loader\ArrayLoader([]))),
-                    'blade' => new BladeRenderer($config ?? new Illuminate\View\Factory(new Illuminate\View\FileViewFinder([]))),
-                    default => throw new \InvalidArgumentException("Unknown renderer engine"),
-                };
-            }
-        },
-        default => throw new \InvalidArgumentException("Unknown factory type"),
-    };
-}
-
-// Enum для типов SimpleFactory
-enum FactoryType: string
-{
-    case PAYMENT = 'payment';
-    case LOGGER = 'logger';
-    case NOTIFIER = 'notifier';
-    case VALIDATOR = 'validator';
-    case RENDERER = 'renderer';
-    case CONNECTION = 'connection';
+    case FILE = 'file';
     case DATABASE = 'database';
-    case CACHE = 'cache';
-    case SESSION = 'session';
-    case REQUEST = 'request';
-    case RESPONSE = 'response';
-    case FORM = 'form';
-    case VIEW = 'view';
-    case MAIL = 'mail';
-    case NOTIFICATION = 'notification';
+    case STDOUT = 'stdout';
 }
 
-class FactoryFactory
+class LoggerFactory
 {
-    public function create(FactoryType $type): object
+    public function create(LoggerType $type, array $config = []): Logger
     {
         return match ($type) {
-            FactoryType::PAYMENT => new class {
-                public static function create(string $method): PaymentMethod
-                {
-                    return match (strtolower($method)) {
-                        'credit_card', 'card', 'cc' => new CreditCardPayment(),
-                        'paypal', 'pp' => new PayPalPayment(),
-                        'bank_transfer', 'transfer', 'wire' => new BankTransferPayment(),
-                        'crypto', 'bitcoin', 'ethereum' => new CryptoPayment(),
-                        default => throw new \InvalidArgumentException("Unknown payment method"),
-                    };
-                }
-            },
-            FactoryType::LOGGER => new class {
-                public static function create(string $type, array $config = []): Logger
-                {
-                    return match (strtolower($type)) {
-                        'file' => new FileLogger($config['path'] ?? '/tmp/app.log'),
-                        'database' => new DatabaseLogger($config['connection'] ?? new PDO('sqlite::memory:')),
-                        'stdout' => new StdoutLogger(),
-                        default => throw new \InvalidArgumentException("Unknown logger type"),
-                    };
-                }
-            },
-            FactoryType::NOTIFIER => new class {
-                public static function create(string $channel): Notifier
-                {
-                    return match (strtolower($channel)) {
-                        'email', 'e-mail' => new EmailNotifier(),
-                        'sms', 'text' => new SmsNotifier(),
-                        'push', 'notification' => new PushNotifier(),
-                        default => throw new \InvalidArgumentException("Unknown notification channel"),
-                    };
-                }
-            },
-            FactoryType::VALIDATOR => new class {
-                public static function create(string $rule, array $config = []): Validator
-                {
-                    return match (strtolower($rule)) {
-                        'email' => new EmailValidator(),
-                        'required' => new RequiredValidator(),
-                        'min_length', 'min' => new MinLengthValidator($config['length'] ?? 6),
-                        default => throw new \InvalidArgumentException("Unknown validation rule"),
-                    };
-                }
-            },
-            FactoryType::RENDERER => new class {
-                public static function create(string $engine, mixed $config = null): Renderer
-                {
-                    return match (strtolower($engine)) {
-                        'php' => new PhpRenderer(),
-                        'twig' => new TwigRenderer($config ?? new Twig\Environment(new Twig\Loader\ArrayLoader([]))),
-                        'blade' => new BladeRenderer($config ?? new Illuminate\View\Factory(new Illuminate\View\FileViewFinder([]))),
-                        default => throw new \InvalidArgumentException("Unknown renderer engine"),
-                    };
-                }
-            },
-            FactoryType::CONNECTION => new class {
-                public static function create(string $driver, array $config = []): PDO
-                {
-                    return match (strtolower($driver)) {
-                        'mysql' => new PDO(
-                            "mysql:host={$config['host'] ?? 'localhost'};dbname={$config['database'] ?? 'test']}",
-                            $config['username'] ?? 'root',
-                            $config['password'] ?? ''
-                        ),
-                        'pgsql' => new PDO(
-                            "pgsql:host={$config['host'] ?? 'localhost'};dbname={$config['database'] ?? 'test']}",
-                            $config['username'] ?? 'root',
-                            $config['password'] ?? ''
-                        ),
-                        'sqlite' => new PDO("sqlite:{$config['database'] ?? ':memory:'}"),
-                        default => throw new \InvalidArgumentException("Unknown database driver"),
-                    };
-                }
-            },
-            FactoryType::DATABASE => new class {
-                public static function connection(string $name, array $config): Connection
-                {
-                    // Реальная реализация из Laravel
-                    return new Connection($config);
-                }
-            },
-            FactoryType::CACHE => new class {
-                public static function store(string $driver, array $config): Repository
-                {
-                    // Реальная реализация из Laravel
-                    return new Repository(new FileStore($config));
-                }
-            },
-            FactoryType::SESSION => new class {
-                public static function driver(string $driver, array $config): Store
-                {
-                    // Реальная реализация из Laravel
-                    return new Store($config);
-                }
-            },
-            FactoryType::REQUEST => new class {
-                public static function create(string $uri, string $method = 'GET', array $parameters = []): Request
-                {
-                    return Request::create($uri, $method, $parameters);
-                }
-            },
-            FactoryType::RESPONSE => new class {
-                public static function create(string $content = '', int $status = 200, array $headers = []): Response
-                {
-                    return new Response($content, $status, $headers);
-                }
-            },
-            FactoryType::FORM => new class {
-                public static function create(string $type, array $data = []): FormInterface
-                {
-                    // Реальная реализация из Symfony
-                    return new Form($type, $data);
-                }
-            },
-            FactoryType::VIEW => new class {
-                public static function make(string $view, array $data = []): View
-                {
-                    // Реальная реализация из Laravel
-                    return new View($view, $data);
-                }
-            },
-            FactoryType::MAIL => new class {
-                public static function to(string $email, string $name = ''): Mailable
-                {
-                    // Реальная реализация из Laravel
-                    return (new Mailable())->to($email, $name);
-                }
-            },
-            FactoryType::NOTIFICATION => new class {
-                public static function send(mixed $notifiable, Notification $notification): void
-                {
-                    // Реальная реализация из Laravel
-                    $notification->send($notifiable);
-                }
-            },
+            LoggerType::FILE => new FileLogger($config['path'] ?? sys_get_temp_dir() . '/app.log'),
+            LoggerType::DATABASE => new DatabaseLogger(
+                $config['connection'] ?? throw new \InvalidArgumentException('Connection required')
+            ),
+            LoggerType::STDOUT => new StdoutLogger(),
         };
     }
 }
+
+// Использование:
+$factory = new LoggerFactory();
+$logger = $factory->create(LoggerType::FILE, ['path' => '/var/log/app.log']);
 
 
 ********************************* */
