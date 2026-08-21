@@ -1,0 +1,44 @@
+{
+    "name": "root/oop_templates",
+    "description": "Yet another realisation of vary of OOP templates in PHP",
+    "type": "project",
+    "license": "MPL-2.0",
+    "authors": [ { "name": "v0" } ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=8.4",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "ext-pdo": "*"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "dev-master",
+        "phpstan/phpstan": "2.2.*",
+        "phpunit/phpunit": "dev-main",
+        "squizlabs/php_codesniffer": "4.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Beh\\ChainsOfResponsibilities\\Chains\\Step\\": "Behavioral/ChainOfResponsibilities/Chains/Step/",
+            "Beh\\ChainsOfResponsibilities\\Step\\": "Behavioral/ChainOfResponsibilities/Step/",
+            "Beh\\ChainsOfResponsibilities\\Shop\\": "Behavioral/ChainOfResponsibilities/Shop/",
+
+            "Behavioral\\": "Behavioral",
+
+            "Creational\\": "Creational",
+
+            "Structural\\": "Structural"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "cs": "vendor/bin/php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "vendor/bin/php-cs-fixer fix",
+        "analyse": "vendor/bin/phpstan analyse",
+        "test": "vendor/bin/phpunit"
+    }
+}

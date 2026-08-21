@@ -1,0 +1,13 @@
+version: '3.2'
+
+services:
+
+  php:
+    build: .
+    container_name: oop_templates
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    environment:
+      - PHP_IDE_CONFIG=serverName=Docker

@@ -18,6 +18,12 @@ vendor
 .Trashes
 ehthumbs.db
 Thumbs.db
+/.*
+!.dockerignore
+!.php-cs-fixer.php
+*.cache
+*.log
+*.bac
 
 
 # PHPUnit

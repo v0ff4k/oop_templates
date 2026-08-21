@@ -1,0 +1,10 @@
+.git/
+.*/
+.gitignore
+.idea/
+.vscode/
+!.php-cs-fixer.php
+nbproject
+*.log
+tests/
+docker/

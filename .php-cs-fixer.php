@@ -1,11 +1,14 @@
 <?php
 
-$finder = PhpCsFixer\Finder::create()
+// Инициализация Finder (поиск файлов)
+$finder = (new PhpCsFixer\Finder())
     ->exclude('vendor')
+    ->exclude('tests')
     ->in(__DIR__)
 ;
 
-return PhpCsFixer\Config::create()
+// Инициализация Config
+return (new PhpCsFixer\Config())
     ->setRiskyAllowed(true)
     ->setRules([
         '@PSR1' => false,
@@ -15,4 +18,4 @@ return PhpCsFixer\Config::create()
     ])
     ->setLineEnding(PHP_EOL)
     ->setFinder($finder)
-;
+    ;
